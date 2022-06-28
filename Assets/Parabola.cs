@@ -5,15 +5,25 @@ using UnityEngine;
 [SerializeField]
 public class Parabola
 {
+    public class SolutionPoint
+    {
+        public float x; // x postion
+        public Parabola parabola;
+
+        public SolutionPoint(float x, Parabola target)
+        {
+            this.x = x;
+            this.parabola = target;
+        }
+    }
+
     public class Solution
     {
         public SolutionPoint from;
         public SolutionPoint to;
-        public DrawHandler.Line line;
 
         public Solution(SolutionPoint from, SolutionPoint to)
         {
-
             if (from.x > to.x)
             {
                 this.to = from;
@@ -25,54 +35,40 @@ public class Parabola
                 this.to = to;
             }
         }
-
-        public bool isPointBetweenSolution(SolutionPoint point)
-        {
-            return point.x < to.x && point.x > from.x;
-        }
-
-        public class SolutionPoint
-        {
-            public float x; // x postion
-            public Parabola targetParabola;
-
-            public SolutionPoint(float x, Parabola targetParabola)
-            {
-                this.x = x;
-                this.targetParabola = targetParabola;
-            }
-        }
     }
 
-    private float standardLineY; // k - c
-    private Vector2 focus; // (h, k + c)
+
+    static int segmentCount = 40;
+
+    public float standardLineY; // k - c
+    public Vector2 focus; // (h, k + c)
     public Vector2 vertex; // (h, k)
     public float c;
+    public SolutionPoint frPoint; // from point
+    public SolutionPoint toPoint; // to point
 
-    public Parabola(Vector2 focus)
+    public Parabola(Parabola copy)
     {
-        this.focus = focus;
-        this.standardLineY = 0.0f;
-        CalculateVertexAndC();
+        this.standardLineY = copy.standardLineY;
+        this.focus = copy.focus;
+        this.vertex = copy.vertex;
+        this.c = copy.c;
+        this.frPoint = copy.frPoint;
+        this.toPoint = copy.toPoint;
     }
 
-
-    public Parabola(float standardLineY, Vector2 focus)
+    public Parabola(Vector2 focus, float standardLineY)
     {
-        this.standardLineY = standardLineY;
         this.focus = focus;
+        this.standardLineY = standardLineY;
+        this.frPoint = new SolutionPoint(-VoronoiDiagram.instance.scanRange, null);
+        this.toPoint = new SolutionPoint(VoronoiDiagram.instance.scanRange, null);
         CalculateVertexAndC();
     }
 
     public void SetStandardLineY(float standardLineY)
     {
         this.standardLineY = standardLineY;
-        CalculateVertexAndC();
-    }
-
-    public void SetFocus(Vector2 focus)
-    {
-        this.focus = focus;
         CalculateVertexAndC();
     }
 
@@ -106,9 +102,83 @@ public class Parabola
             return null;
 
         float sqrDelta = Mathf.Sqrt(delta);
-        var from = new Solution.SolutionPoint((-B - sqrDelta) / 2 / A, another);
-        var to = new Solution.SolutionPoint((-B + sqrDelta) / 2 / A, another);
+        var from = new SolutionPoint((-B - sqrDelta) / 2 / A, another);
+        var to = new SolutionPoint((-B + sqrDelta) / 2 / A, another);
 
         return new Solution(from, to);
+    }
+
+
+    // if return true, means this parablo need to remove
+    public bool SolveToParabola(List<Parabola> parabolas)
+    {
+        if (!parabolas.Contains(this))
+            return false;
+
+        var anotherParabola = toPoint.parabola;
+
+        if (anotherParabola == null)
+            return false;
+
+        var solution = SolveTwoParabola(anotherParabola);
+        SolutionPoint targetPoint;
+
+        if (focus.y > anotherParabola.focus.y)
+            targetPoint = solution.to;
+        else
+            targetPoint = solution.from;
+
+        anotherParabola.frPoint.x = toPoint.x = targetPoint.x;
+
+        if (toPoint.x < frPoint.x)
+        {
+            if (frPoint.parabola != null)
+                frPoint.parabola.toPoint.parabola = toPoint.parabola;
+
+            if (toPoint.parabola != null)
+                toPoint.parabola.frPoint.parabola = frPoint.parabola;
+
+            parabolas.Remove(this);
+
+            if (frPoint.parabola != null)
+                frPoint.parabola.SolveToParabola(parabolas);
+        }
+        else if (toPoint.x > VoronoiDiagram.instance.scanRange)
+        {
+            RemoveTo(parabolas);
+        }
+
+        return false;
+    }
+
+    public void RemoveTo(List<Parabola> parabolas)
+    {
+        if (toPoint.parabola != null)
+        {
+            toPoint.parabola.RemoveTo(parabolas);
+            parabolas.Remove(toPoint.parabola);
+            toPoint.parabola = null;
+            toPoint.x = VoronoiDiagram.instance.scanRange;
+        }
+    }
+
+    public bool IsPointInParabola(SolutionPoint point)
+    {
+        return point.x < toPoint.x && point.x > frPoint.x;
+    }
+
+    public List<Vector3> GetDrawPoints()
+    {
+        List<Vector3> line = new List<Vector3>();
+
+        float x_step = (toPoint.x - frPoint.x) / segmentCount;
+
+        for (int i = 0; i <= segmentCount; i++)
+        {
+            float x = frPoint.x + i * x_step;
+            line.Add(new Vector3(x, GetY(x), 0f));
+        }
+
+        return line;
     }
 }

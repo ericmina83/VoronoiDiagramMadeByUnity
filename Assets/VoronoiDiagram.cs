@@ -10,13 +10,16 @@ public class VoronoiDiagram : MonoBehaviour
     public float scanSpeed = 1.0f;
 
     public Point point;
-    List<Parabola> parabolas;
     public List<Point> points = new List<Point>();
+    public List<Point> addedPoints = new List<Point>();
 
     public static VoronoiDiagram instance;
     public DrawHandler.LineHandler lineHandler;
+    List<Parabola> parabolas = new List<Parabola>();
 
     LineRenderer lr;
+
+    string lineParent = "haha";
 
     public void Awake()
     {
@@ -27,11 +30,14 @@ public class VoronoiDiagram : MonoBehaviour
     {
         lr = GetComponent<LineRenderer>();
         lineHandler = GetComponent<DrawHandler.LineHandler>();
+        ResetScanY();
     }
 
     void ResetScanY()
     {
         scanY = -scanRange;
+        addedPoints.Clear();
+        parabolas.Clear();
     }
 
     // Update is called once per frame
@@ -52,30 +58,45 @@ public class VoronoiDiagram : MonoBehaviour
             }
         }
 
-        scanY += scanSpeed * Time.deltaTime;
+        RunScanY();
 
+        foreach (var point in points)
+        {
+            if (point.position.y < scanY)
+            {
+                if (!addedPoints.Contains(point))
+                {
+                    point.SolvePoint(parabolas, scanY);
+                    addedPoints.Add(point);
+                    break;
+                }
+            }
+        }
+
+        foreach (var parabola in new List<Parabola>(parabolas))
+        {
+            parabola.SolveToParabola(parabolas);
+        }
+
+        lineHandler.ClearLines(lineParent);
+
+        foreach (var parabola in parabolas)
+        {
+            lineHandler.DrawPoints(parabola.GetDrawPoints(), lineParent, Color.white);
+        }
+    }
+
+    void RunScanY()
+    {
+        scanY += scanSpeed * Time.deltaTime;
         if (scanY >= scanRange)
             ResetScanY();
 
+        foreach (var parabola in parabolas)
+            parabola.SetStandardLineY(scanY);
 
         lr.positionCount = 2;
         lr.SetPosition(0, new Vector3(-scanRange, scanY));
         lr.SetPosition(1, new Vector3(scanRange, scanY));
-
-        foreach (var point in points)
-            point.SetScanY(scanY);
-
-        var targetPoints = points.Where(point => point.position.y < scanY).ToList();
-
-        for (int i = 0; i < targetPoints.Count(); i++)
-        {
-            for (int j = i + 1; j < targetPoints.Count(); j++)
-            {
-                var thisPoint = targetPoints[i];
-                var thatPoint = targetPoints[j];
-
-                thisPoint.SolvePoint(thatPoint);
-            }
-        }
     }
 }

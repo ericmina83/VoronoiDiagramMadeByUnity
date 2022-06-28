@@ -6,7 +6,7 @@ namespace DrawHandler
     [RequireComponent(typeof(LineRenderer))]
     public class Line : MonoBehaviour
     {
-        private LineRenderer lr;
+        public LineRenderer lr;
         public string parent;
         public Vector3 position;
         public float width = 0.1f;

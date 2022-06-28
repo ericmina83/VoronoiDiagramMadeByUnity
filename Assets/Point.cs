@@ -4,14 +4,8 @@ using UnityEngine;
 
 public class Point : MonoBehaviour
 {
-    LineRenderer lr;
-
-    private float scanY;
-    int segmentCount = 100;
-    List<Parabola.Solution> solutions = new List<Parabola.Solution>();
-    public Parabola parabola;
-
-    public DrawHandler.LineHandler lineHandler;
+    private LineRenderer lr;
+    public List<Parabola.Solution> solutions = new List<Parabola.Solution>();
 
     public Vector3 position
     {
@@ -25,106 +19,69 @@ public class Point : MonoBehaviour
     void Start()
     {
         lr = GetComponent<LineRenderer>();
-
-        if (parabola == null)
-            parabola = new Parabola(transform.position);
-
-        lineHandler = GetComponent<DrawHandler.LineHandler>();
     }
 
-    public void SetScanY(float scanY)
+    public void SolvePoint(List<Parabola> parabolas, float scanY)
     {
-        this.scanY = scanY;
-        if (parabola == null)
-            parabola = new Parabola(scanY, transform.position);
-        else
-            parabola.SetStandardLineY(scanY);
+        var newParbola = new Parabola(position, scanY);
 
-        solutions.Clear(); // clear all solution for next round
-        solutions.Add(new Parabola.Solution(
-            new Parabola.Solution.SolutionPoint(-VoronoiDiagram.instance.scanRange, null),
-            new Parabola.Solution.SolutionPoint(VoronoiDiagram.instance.scanRange, null)
-        ));
-    }
-
-    public void SolvePoint(Point another)
-    {
-        var newSolution = parabola.SolveTwoParabola(another.parabola);
-
-        foreach (var thisSolution in solutions)
+        foreach (var parabola in parabolas)
         {
-            if (thisSolution.isPointBetweenSolution(newSolution.from))
-                thisSolution.from = newSolution.from;
+            var solution = newParbola.SolveTwoParabola(parabola);
 
-            if (thisSolution.isPointBetweenSolution(newSolution.to))
-                thisSolution.to = newSolution.to;
+            // becuase I'm higher than other points, I must between my solution.x1 and solution.x2
+            if (newParbola.IsPointInParabola(solution.from))
+                newParbola.frPoint = solution.from;
 
-            // var newThatSolutions = new List<Parabola.Solution>();
-
-            // foreach (var thatSolution in another.solutions)
-            // {
-            //     // handle from solution point
-            //     if (thatSolution.isPointBetweenSolution(thisSolution.from) && // if
-            //         thisSolution.from.targetParabola == another.parabola)
-
-            //         // newSolution
-            //         if (thisSolution.from < thatSolution.to && thisSolution.from > thatSolution.from)
-            //         {
-            //             newThatSolutions.Add(new Parabola.Solution())
-            //         }
-            // }
-            // another.solutions = newThatSolutions;
+            if (newParbola.IsPointInParabola(solution.to))
+                newParbola.toPoint = solution.to;
         }
 
+        parabolas.Add(newParbola);
 
-        // becuase I'm higher than other points, I must between my solution.x1 and solution.x2
-
-
-        // return
-        //     from_x < VoronoiDiagram.instance.scanRange &&
-        //     to_x > VoronoiDiagram.instance.scanRange;
-    }
-
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (scanY < position.y)
+        if (newParbola.frPoint.parabola == newParbola.toPoint.parabola)
         {
-            lr.positionCount = 0;
-            return;
-        }
+            var oldParabola = newParbola.frPoint.parabola;
 
+            //    old       new       old
+            // ---------|---------|---------
+            // we must cut the old parabola
 
-        // foreach (var another in VoronoiDiagram.instance.points)
-        // {
-        //     if (another == this)
-        //         break;
+            //  oldFrom     new      newTo
+            // ---------|---------|---------
 
-        //     foreach (var thisSolution in solutions)
-        //     {
-        //         foreach (var thatSolution in another.solutions)
-        //         {
-        //             SolvePoint(another);
-        //         }
-        //     }
-        // }
-
-        lr.positionCount = segmentCount + 1;
-
-        foreach (var solution in solutions)
-        {
-            float x_step = (solution.to.x - solution.from.x) / segmentCount;
-
-            for (int i = 0; i <= segmentCount; i++)
+            if (oldParabola != null)
             {
-                float x = solution.from.x + i * x_step;
-                lr.SetPosition(i, new Vector3(x, parabola.GetY(x), 0f));
+                // handle to (copy a new one)
+                var newTo = new Parabola(oldParabola.focus, oldParabola.standardLineY);
+                newTo.frPoint = new Parabola.SolutionPoint(newParbola.toPoint.x, newParbola);
+                newTo.toPoint = new Parabola.SolutionPoint(oldParabola.toPoint.x, oldParabola.toPoint.parabola);
+                parabolas.Add(newTo);
+                newParbola.toPoint.parabola = newTo;
+
+                // handle from
+                var oldFr = oldParabola;
+                oldFr.toPoint.parabola = newParbola;
+                oldFr.toPoint.x = newParbola.frPoint.x;
             }
         }
+        else
+        {
+            Debug.Log("fhdsjlfhjksadhksd");
+            if (newParbola.frPoint.parabola != null)
+            {
+                var frParbola = newParbola.frPoint.parabola;
+                frParbola.toPoint.parabola = newParbola;
+                frParbola.toPoint.x = newParbola.frPoint.x;
+            }
 
-        // lr.positionCount = segmentCount + 1;
-
+            if (newParbola.toPoint.parabola != null)
+            {
+                var toParbola = newParbola.toPoint.parabola;
+                toParbola.frPoint.parabola = newParbola;
+                toParbola.frPoint.x = newParbola.toPoint.x;
+            }
+        }
 
     }
 }
