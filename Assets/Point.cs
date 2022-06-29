@@ -22,10 +22,10 @@ public class Point : MonoBehaviour
         {
             var solution = newParbola.Solve(line);
 
-            if (newParbola.IsXInParabola(solution.frPoint.x))
+            if (newParbola.IsXInLine(solution.frPoint.x) && line.IsXInLine(solution.frPoint.x))
                 newParbola.frPoint = solution.frPoint;
 
-            if (newParbola.IsXInParabola(solution.toPoint.x))
+            if (newParbola.IsXInLine(solution.toPoint.x) && line.IsXInLine(solution.toPoint.x))
                 newParbola.toPoint = solution.toPoint;
         }
 
@@ -36,41 +36,43 @@ public class Point : MonoBehaviour
             var oldParabola = newParbola.frPoint.line;
 
             //    old       new       old
-            // ---------|---------|---------
+            // ---------|---------|---------|-----
             // we must cut the old parabola
 
             //  oldFrom     new      newTo
-            // ---------|---------|---------
+            // ---------|---------|---------|-----
 
             if (oldParabola != null)
             {
                 // handle to (copy a new one)
                 var newTo = oldParabola.CopySelf();
                 newTo.frPoint = new Line.SolutionPoint(newParbola.toPoint.x, newParbola);
+                newTo.toPoint = oldParabola.toPoint;
                 lines.Add(newTo);
                 newParbola.toPoint.line = newTo;
 
+                if (oldParabola.toPoint.line != null)
+                    oldParabola.toPoint.line.frPoint.line = newTo;
+
                 // handle from
                 var oldFr = oldParabola;
-                oldFr.toPoint.line = newParbola;
-                oldFr.toPoint.x = newParbola.frPoint.x;
+                oldFr.toPoint = new Line.SolutionPoint(newParbola.frPoint.x, newParbola);
             }
         }
         else
         {
-            Debug.Log("fhdsjlfhjksadhksd");
             if (newParbola.frPoint.line != null)
             {
-                var frParbola = newParbola.frPoint.line;
-                frParbola.toPoint.line = newParbola;
-                frParbola.toPoint.x = newParbola.frPoint.x;
+                var frParabola = newParbola.frPoint.line;
+                frParabola.toPoint.line = newParbola;
+                frParabola.toPoint.x = newParbola.frPoint.x;
             }
 
             if (newParbola.toPoint.line != null)
             {
-                var toParbola = newParbola.toPoint.line;
-                toParbola.frPoint.line = newParbola;
-                toParbola.frPoint.x = newParbola.toPoint.x;
+                var toParabola = newParbola.toPoint.line;
+                toParabola.frPoint.line = newParbola;
+                toParabola.frPoint.x = newParbola.toPoint.x;
             }
         }
     }

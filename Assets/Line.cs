@@ -11,6 +11,7 @@ abstract public class Line
     {
         public float x; // x postion
         public Line line;
+        public Edge edge;
 
         public SolutionPoint(float x, Line line)
         {
@@ -52,9 +53,10 @@ abstract public class Line
     public Line()
     {
         frPoint = new SolutionPoint(-VoronoiDiagram.instance.scanRange, null);
-        frPoint = new SolutionPoint(+VoronoiDiagram.instance.scanRange, null);
+        toPoint = new SolutionPoint(+VoronoiDiagram.instance.scanRange, null);
 
         drawLine = GameObject.Instantiate(VoronoiDiagram.instance.linePrefab);
+        drawLine.line = this;
     }
 
     public SolutionPoint frPoint; // from point
@@ -72,11 +74,8 @@ abstract public class Line
     }
 
     // if return true, means this parablo need to remove
-    public bool Update(List<Line> lines)
+    public List<Line> Update(List<Line> lines)
     {
-        if (!lines.Contains(this))
-            return false;
-
         // solve from parabola
         var frParabola = frPoint.line;
         if (frParabola != null)
@@ -89,7 +88,6 @@ abstract public class Line
             else
                 frPoint = frSolution.toPoint;
         }
-
 
         // solve to parabola
         var toParabola = toPoint.line;
@@ -107,12 +105,12 @@ abstract public class Line
         if (toPoint.x < frPoint.x)
         {
             if (frPoint.line != null)
-                frPoint.line.toPoint.line = toPoint.line;
+                frPoint.line.toPoint = toPoint.CopySelf();
 
             if (toPoint.line != null)
-                toPoint.line.frPoint.line = frPoint.line;
+                toPoint.line.frPoint = frPoint.CopySelf();
 
-            lines.Remove(this);
+            lines = RemoveSelf(lines);
 
             if (frPoint.line != null)
                 frPoint.line.Update(lines);
@@ -121,7 +119,7 @@ abstract public class Line
                 toPoint.line.Update(lines);
         }
 
-        return false;
+        return lines;
     }
 
     abstract public Solution SolveParabola(Parabola line);
@@ -145,7 +143,7 @@ abstract public class Line
     abstract public float GetY(float x);
     abstract public Line CopySelf();
 
-    public bool IsXInParabola(float x)
+    public bool IsXInLine(float x)
     {
         return x < toPoint.x && x > frPoint.x;
     }
@@ -153,5 +151,12 @@ abstract public class Line
     public void DeleteLine()
     {
         drawLine.DeleteSelf();
+    }
+
+    public List<Line> RemoveSelf(List<Line> lines)
+    {
+        lines.Remove(this);
+        DeleteLine();
+        return lines;
     }
 }

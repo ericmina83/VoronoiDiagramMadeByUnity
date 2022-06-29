@@ -33,9 +33,6 @@ public class BottomLine : Line
     public override Line CopySelf()
     {
         var line = new BottomLine(y);
-        line.frPoint = frPoint.CopySelf();
-        line.toPoint = toPoint.CopySelf();
-
         return line;
     }
 }

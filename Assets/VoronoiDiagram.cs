@@ -17,6 +17,7 @@ public class VoronoiDiagram : MonoBehaviour
     [SerializeField]
     List<Line> lines = new List<Line>();
     public DrawLine linePrefab;
+    public Edge edgePrefab;
 
 
     LineRenderer lr;
@@ -36,15 +37,16 @@ public class VoronoiDiagram : MonoBehaviour
     {
         scanY = -scanRange;
 
-        foreach (var parabola in lines)
-            parabola.DeleteLine();
+        foreach (var line in lines)
+            line.DeleteLine();
 
         addedPoints.Clear();
         lines.Clear();
+
+        lines.Add(new BottomLine(-scanRange));
     }
 
-    // Update is called once per frame
-    void Update()
+    public void HandleAddNewPoint()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -60,6 +62,12 @@ public class VoronoiDiagram : MonoBehaviour
                 ResetScanY();
             }
         }
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        HandleAddNewPoint();
 
         RunScanY();
 

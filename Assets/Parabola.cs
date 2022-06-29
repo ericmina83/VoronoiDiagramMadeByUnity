@@ -59,7 +59,9 @@ public class Parabola : Line
         float delta = B * B - 4 * A * C;
 
         if (delta < 0)
+        {
             return null;
+        }
 
         float sqrDelta = Mathf.Sqrt(delta);
         var from = new SolutionPoint((-B - sqrDelta) / 2 / A, another);
@@ -71,8 +73,6 @@ public class Parabola : Line
     public override Line CopySelf()
     {
         var copy = new Parabola(focus, standardLineY);
-        copy.frPoint = frPoint.CopySelf();
-        copy.toPoint = toPoint.CopySelf();
 
         return copy;
     }

@@ -8,6 +8,7 @@ public class DrawLine : MonoBehaviour
     public string parent;
     public Vector3 position;
     public float width = 0.1f;
+    public Line line;
 
     public void SetColor(Color color)
     {
