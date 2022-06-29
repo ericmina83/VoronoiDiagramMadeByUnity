@@ -12,14 +12,14 @@ public class VoronoiDiagram : MonoBehaviour
     public Point point;
     public List<Point> points = new List<Point>();
     public List<Point> addedPoints = new List<Point>();
-
     public static VoronoiDiagram instance;
-    public DrawHandler.LineHandler lineHandler;
-    List<Parabola> parabolas = new List<Parabola>();
+
+    [SerializeField]
+    List<Line> lines = new List<Line>();
+    public DrawLine linePrefab;
+
 
     LineRenderer lr;
-
-    string lineParent = "haha";
 
     public void Awake()
     {
@@ -29,15 +29,18 @@ public class VoronoiDiagram : MonoBehaviour
     public void Start()
     {
         lr = GetComponent<LineRenderer>();
-        lineHandler = GetComponent<DrawHandler.LineHandler>();
         ResetScanY();
     }
 
     void ResetScanY()
     {
         scanY = -scanRange;
+
+        foreach (var parabola in lines)
+            parabola.DeleteLine();
+
         addedPoints.Clear();
-        parabolas.Clear();
+        lines.Clear();
     }
 
     // Update is called once per frame
@@ -66,23 +69,21 @@ public class VoronoiDiagram : MonoBehaviour
             {
                 if (!addedPoints.Contains(point))
                 {
-                    point.SolvePoint(parabolas, scanY);
+                    point.SolvePoint(lines, scanY);
                     addedPoints.Add(point);
                     break;
                 }
             }
         }
 
-        foreach (var parabola in new List<Parabola>(parabolas))
+        foreach (var line in new List<Line>(lines))
         {
-            parabola.SolveToParabola(parabolas);
+            line.Update(lines);
         }
 
-        lineHandler.ClearLines(lineParent);
-
-        foreach (var parabola in parabolas)
+        foreach (var parabola in lines)
         {
-            lineHandler.DrawPoints(parabola.GetDrawPoints(), lineParent, Color.white);
+            parabola.UpdateDrawPoints();
         }
     }
 
@@ -92,8 +93,11 @@ public class VoronoiDiagram : MonoBehaviour
         if (scanY >= scanRange)
             ResetScanY();
 
-        foreach (var parabola in parabolas)
-            parabola.SetStandardLineY(scanY);
+        foreach (var line in lines)
+        {
+            if (line is Parabola)
+                (line as Parabola).SetStandardLineY(scanY);
+        }
 
         lr.positionCount = 2;
         lr.SetPosition(0, new Vector3(-scanRange, scanY));

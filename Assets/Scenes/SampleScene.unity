@@ -133,7 +133,6 @@ GameObject:
   m_Component:
   - component: {fileID: 205809603}
   - component: {fileID: 205809605}
-  - component: {fileID: 205809606}
   - component: {fileID: 205809604}
   m_Layer: 0
   m_Name: VoronoiDiagram
@@ -271,18 +270,7 @@ MonoBehaviour:
   scanSpeed: 1
   point: {fileID: -4274083887157280140, guid: f70d1e0f1017a406a8e40166b48a881b, type: 3}
   points: []
---- !u!114 &205809606
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 205809602}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1989e77093244d1c97eef2d1e70ffad, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  addedPoints: []
   linePrefab: {fileID: 4501083257519634106, guid: eaecbddda42f3430b9a0507a487aaf05, type: 3}
 --- !u!1 &519420028
 GameObject:
