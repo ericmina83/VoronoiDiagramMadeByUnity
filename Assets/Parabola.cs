@@ -31,14 +31,21 @@ public class Parabola : Line
 
     override public float GetY(float x)
     {
+        if (c == 0)
+            return focus.y;
+
         return (x - vertex.x) * (x - vertex.x) / 4 / c + vertex.y;
     }
 
     override public Solution SolveBottomLine(BottomLine bottomLine)
     {
-        float delta = Mathf.Sqrt((bottomLine.y - vertex.y) * 4 * c);
-        var fr = new SolutionPoint(-delta + vertex.x, bottomLine);
-        var to = new SolutionPoint(+delta + vertex.x, bottomLine);
+        float delta = (bottomLine.y - vertex.y) * 4 * c;
+        if (delta < 0)
+            return null;
+
+        float sqrDelta = Mathf.Sqrt(delta);
+        var fr = new SolutionPoint(-sqrDelta + vertex.x, bottomLine);
+        var to = new SolutionPoint(+sqrDelta + vertex.x, bottomLine);
 
         return new Solution(fr, to);
     }

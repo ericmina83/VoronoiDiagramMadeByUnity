@@ -19,6 +19,8 @@ public class DrawLine : MonoBehaviour
     {
         lr = gameObject.GetComponent<LineRenderer>();
         // lr.material = lineMaterial;
+        lr.startColor = Color.red;
+        lr.endColor = Color.red;
 
         lr.startWidth = width;
         lr.endWidth = width;

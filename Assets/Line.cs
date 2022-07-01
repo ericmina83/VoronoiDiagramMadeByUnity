@@ -11,7 +11,7 @@ abstract public class Line
     {
         public float x; // x postion
         public Line line;
-        public Edge edge;
+        public IEdge edge;
 
         public SolutionPoint(float x, Line line)
         {
@@ -22,6 +22,12 @@ abstract public class Line
         public SolutionPoint CopySelf()
         {
             return new SolutionPoint(x, line);
+        }
+
+        public void Update(SolutionPoint point)
+        {
+            this.x = point.x;
+            this.line = point.line;
         }
     }
 
@@ -74,7 +80,7 @@ abstract public class Line
     }
 
     // if return true, means this parablo need to remove
-    public List<Line> Update(List<Line> lines)
+    public void Update(List<Line> lines, List<Edge> edges)
     {
         // solve from parabola
         var frParabola = frPoint.line;
@@ -84,9 +90,12 @@ abstract public class Line
             var xForYJudgement = Random.Range(frSolution.frPoint.x, frSolution.toPoint.x);
 
             if (GetY(xForYJudgement) > frParabola.GetY(xForYJudgement))
-                frPoint = frSolution.frPoint;
+                frPoint.Update(frSolution.frPoint);
             else
-                frPoint = frSolution.toPoint;
+                frPoint.Update(frSolution.toPoint);
+
+            if (frPoint.edge != null)
+                frPoint.edge.SetEndPoint(new Vector3(frPoint.x, GetY(frPoint.x), 0));
         }
 
         // solve to parabola
@@ -97,9 +106,12 @@ abstract public class Line
             var xForYJudgement = Random.Range(toSolution.frPoint.x, toSolution.toPoint.x);
 
             if (GetY(xForYJudgement) > toParabola.GetY(xForYJudgement))
-                toPoint = toSolution.toPoint;
+                toPoint.Update(toSolution.toPoint);
             else
-                toPoint = toSolution.frPoint;
+                toPoint.Update(toSolution.frPoint);
+
+            if (toPoint.edge != null)
+                toPoint.edge.SetEndPoint(new Vector3(toPoint.x, GetY(toPoint.x), 0));
         }
 
         if (toPoint.x < frPoint.x)
@@ -113,13 +125,21 @@ abstract public class Line
             lines = RemoveSelf(lines);
 
             if (frPoint.line != null)
-                frPoint.line.Update(lines);
+                frPoint.line.Update(lines, edges);
 
             if (toPoint.line != null)
-                toPoint.line.Update(lines);
-        }
+                toPoint.line.Update(lines, edges);
 
-        return lines;
+            if (toPoint.line != null && frPoint.line != null)
+            {
+                var newEdge = GameObject.Instantiate(VoronoiDiagram.instance.edgePrefab);
+                toPoint.line.frPoint.edge = frPoint.line.toPoint.edge = newEdge;
+                toPoint.line.frPoint.edge.SetStartPoint(new Vector3(toPoint.line.frPoint.x, toPoint.line.GetY(toPoint.line.frPoint.x), 0.0f));
+
+                edges.Add(newEdge);
+            }
+
+        }
     }
 
     abstract public Solution SolveParabola(Parabola line);

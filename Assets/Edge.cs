@@ -2,29 +2,37 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Edge : MonoBehaviour
+public class Edge : MonoBehaviour, IEdge
 {
-    List<Vector3> points;
+    Vector3 startPoint = Vector3.zero;
+    Vector3 endPoint = Vector3.zero;
     LineRenderer lr;
 
     // Start is called before the first frame update
     void Start()
     {
         lr = GetComponent<LineRenderer>();
+        lr.positionCount = 2;
     }
 
-    public void AddPoint(Vector3 point)
+    public void SetStartPoint(Vector3 startPoint)
     {
-        points.Add(point);
+        this.startPoint = startPoint;
     }
 
-    // Update is called once per frame
+    public void SetEndPoint(Vector3 endPoint)
+    {
+        this.endPoint = endPoint;
+    }
+
     void Update()
     {
-        if (points.Count > 1)
-        {
-            lr.positionCount = points.Count;
-            lr.SetPositions(points.ToArray());
-        }
+        lr.SetPosition(0, startPoint);
+        lr.SetPosition(1, endPoint);
+    }
+
+    public void DeleteSelf()
+    {
+        Destroy(this.gameObject);
     }
 }
