@@ -275,6 +275,7 @@ MonoBehaviour:
   addedPoints: []
   linePrefab: {fileID: 4501083257519634106, guid: eaecbddda42f3430b9a0507a487aaf05, type: 3}
   edgePrefab: {fileID: 2435708608207044420, guid: 2b0c55916dda5d74188854179d823c54, type: 3}
+  edges: []
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0

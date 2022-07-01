@@ -18,6 +18,7 @@ public class VoronoiDiagram : MonoBehaviour
     List<Line> lines = new List<Line>();
     public DrawLine linePrefab;
     public Edge edgePrefab;
+    public List<Edge> edges = new List<Edge>();
 
 
     LineRenderer lr;
@@ -39,10 +40,13 @@ public class VoronoiDiagram : MonoBehaviour
 
         foreach (var line in lines)
             line.DeleteLine();
-
-        addedPoints.Clear();
         lines.Clear();
 
+        foreach (var edge in edges)
+            edge.DeleteSelf();
+        edges.Clear();
+
+        addedPoints.Clear();
         lines.Add(new BottomLine(-scanRange));
     }
 
@@ -69,25 +73,13 @@ public class VoronoiDiagram : MonoBehaviour
     {
         HandleAddNewPoint();
 
-        RunScanY();
-
-        foreach (var point in points)
-        {
-            if (point.position.y < scanY)
-            {
-                if (!addedPoints.Contains(point))
-                {
-                    point.SolvePoint(lines, scanY);
-                    addedPoints.Add(point);
-                    break;
-                }
-            }
-        }
+        var newScanPoint = RunScanY();
 
         foreach (var line in new List<Line>(lines))
-        {
-            line.Update(lines);
-        }
+            line.Update(lines, edges);
+
+        if (newScanPoint != null)
+            newScanPoint.SolvePoint(lines, scanY, edges);
 
         foreach (var parabola in lines)
         {
@@ -95,11 +87,28 @@ public class VoronoiDiagram : MonoBehaviour
         }
     }
 
-    void RunScanY()
+    Point RunScanY()
     {
         scanY += scanSpeed * Time.deltaTime;
+
         if (scanY >= scanRange)
             ResetScanY();
+
+        Point newScanPoint = null;
+
+        foreach (var point in points)
+        {
+            if (point.position.y < scanY)
+            {
+                if (!addedPoints.Contains(point))
+                {
+                    newScanPoint = point;
+                    scanY = newScanPoint.position.y;
+                    addedPoints.Add(newScanPoint);
+                    break;
+                }
+            }
+        }
 
         foreach (var line in lines)
         {
@@ -110,5 +119,8 @@ public class VoronoiDiagram : MonoBehaviour
         lr.positionCount = 2;
         lr.SetPosition(0, new Vector3(-scanRange, scanY));
         lr.SetPosition(1, new Vector3(scanRange, scanY));
+
+        return newScanPoint;
     }
+
 }
