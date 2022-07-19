@@ -2,7 +2,9 @@
 
 Unity Version: `2021.3.5f1`
 
-[![Demo Vedio](http://img.youtube.com/vi/HnCEBP4L-Y8/0.jpg)](http://www.youtube.com/watch?v=HnCEBP4L-Y8 "Demo Vedio")
+## Demo Video (gif is link)
+
+[![ResultImage](./ResultImage/VoronoiDaigram.gif)](https://www.youtube.com/watch?v=HnCEBP4L-Y8)
 
 ## Fortune's Algorithm
 

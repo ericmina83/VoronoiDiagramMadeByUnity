@@ -1,7 +1,0 @@
-# VoronoiDiagramMadeByUnity
-
-Unity Version: `2021.3.5f1`
-
-## Demo Video
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/HnCEBP4L-Y8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
